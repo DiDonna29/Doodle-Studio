@@ -1,3 +1,9 @@
+import DoodlePage from "@/components/doodle/DoodlePage";
+
 export default function Home() {
-  return <></>;
+  return (
+    <main>
+      <DoodlePage />
+    </main>
+  );
 }
