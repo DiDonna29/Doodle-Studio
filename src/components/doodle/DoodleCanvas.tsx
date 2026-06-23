@@ -21,6 +21,7 @@ interface DoodleCanvasProps {
 const DoodleCanvas: FC<React.ForwardRefRenderFunction<CanvasActions, DoodleCanvasProps>> = React.forwardRef<CanvasActions, DoodleCanvasProps>(
   ({ width, height, strokeColor, lineWidth, tool, canvasBackgroundColor = '#FFFFFF' }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [lastPosition, setLastPosition] = useState<{ x: number; y: number } | null>(null);
 
@@ -28,13 +29,18 @@ const DoodleCanvas: FC<React.ForwardRefRenderFunction<CanvasActions, DoodleCanva
       if (!canvasRef.current) return null;
       const canvas = canvasRef.current;
       const rect = canvas.getBoundingClientRect();
+      
+      // Calculate scale factor in case CSS has resized the element
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
       let x, y;
       if (event instanceof MouseEvent) {
-        x = event.clientX - rect.left;
-        y = event.clientY - rect.top;
+        x = (event.clientX - rect.left) * scaleX;
+        y = (event.clientY - rect.top) * scaleY;
       } else if (event.touches && event.touches.length > 0) {
-        x = event.touches[0].clientX - rect.left;
-        y = event.touches[0].clientY - rect.top;
+        x = (event.touches[0].clientX - rect.left) * scaleX;
+        y = (event.touches[0].clientY - rect.top) * scaleY;
       } else {
         return null;
       }
@@ -112,19 +118,21 @@ const DoodleCanvas: FC<React.ForwardRefRenderFunction<CanvasActions, DoodleCanva
     }));
 
     return (
-      <canvas
-        ref={canvasRef}
-        width={width}
-        height={height}
-        className="rounded-[1.5rem] shadow-sm cursor-crosshair touch-none bg-white transition-transform active:scale-[1.002]"
-        onMouseDown={startDrawing}
-        onMouseMove={handleDrawing}
-        onMouseUp={stopDrawing}
-        onMouseLeave={stopDrawing}
-        onTouchStart={startDrawing}
-        onTouchMove={handleDrawing}
-        onTouchEnd={stopDrawing}
-      />
+      <div ref={containerRef} className="w-full h-full flex items-center justify-center relative overflow-hidden">
+        <canvas
+          ref={canvasRef}
+          width={width}
+          height={height}
+          className="rounded-2xl shadow-inner cursor-crosshair touch-none bg-white max-w-full max-h-full object-contain"
+          onMouseDown={startDrawing}
+          onMouseMove={handleDrawing}
+          onMouseUp={stopDrawing}
+          onMouseLeave={stopDrawing}
+          onTouchStart={startDrawing}
+          onTouchMove={handleDrawing}
+          onTouchEnd={stopDrawing}
+        />
+      </div>
     );
   }
 );

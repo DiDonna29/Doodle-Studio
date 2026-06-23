@@ -34,84 +34,78 @@ const DoodleToolbar: FC<DoodleToolbarProps> = ({
 
   return (
     <motion.div 
-      initial={{ y: 50, opacity: 0 }}
+      initial={{ y: 20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="flex items-center gap-3 p-3 glass-panel rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-white/20"
+      className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 glass-panel rounded-full shadow-2xl border-white/20 backdrop-blur-2xl"
     >
       <ToggleGroup 
         type="single" 
         value={currentTool} 
         onValueChange={(value: 'pencil' | 'eraser') => value && onToolChange(value)}
-        className="bg-muted p-1 rounded-full gap-1"
+        className="bg-muted/50 p-1 rounded-full gap-0.5"
       >
-        <ToggleGroupItem value="pencil" className="rounded-full w-10 h-10 data-[state=on]:bg-white data-[state=on]:shadow-sm">
-          <Pencil className="h-4 w-4" />
+        <ToggleGroupItem value="pencil" className="rounded-full w-8 h-8 sm:w-10 sm:h-10 data-[state=on]:bg-white data-[state=on]:shadow-sm">
+          <Pencil className="h-3 w-3 sm:h-4 sm:w-4" />
         </ToggleGroupItem>
-        <ToggleGroupItem value="eraser" className="rounded-full w-10 h-10 data-[state=on]:bg-white data-[state=on]:shadow-sm">
-          <Eraser className="h-4 w-4" />
+        <ToggleGroupItem value="eraser" className="rounded-full w-8 h-8 sm:w-10 sm:h-10 data-[state=on]:bg-white data-[state=on]:shadow-sm">
+          <Eraser className="h-3 w-3 sm:h-4 sm:w-4" />
         </ToggleGroupItem>
       </ToggleGroup>
 
-      <div className="w-px h-6 bg-border mx-1" />
+      <div className="w-px h-5 sm:h-6 bg-border mx-0.5" />
 
-      <div className="flex items-center gap-1.5 px-2">
+      {/* Responsive Colors: Hidden on very small screens, shown as popover maybe? For now just a compact flex */}
+      <div className="flex items-center gap-1 sm:gap-1.5 px-1 sm:px-2 overflow-x-auto max-w-[120px] sm:max-w-none no-scrollbar">
         {colors.map((c) => (
           <button
             key={c}
             onClick={() => onStrokeColorChange(c)}
-            className={`w-6 h-6 rounded-full border-2 transition-all hover:scale-125 ${strokeColor === c ? 'border-primary ring-2 ring-primary/20 scale-110' : 'border-transparent opacity-80'}`}
+            className={`w-4 h-4 sm:w-6 sm:h-6 rounded-full border-2 transition-all flex-shrink-0 ${strokeColor === c ? 'border-primary ring-2 ring-primary/20 scale-110' : 'border-transparent opacity-80'}`}
             style={{ backgroundColor: c }}
             disabled={currentTool === 'eraser'}
           />
         ))}
-        <input 
-          type="color" 
-          value={strokeColor}
-          onChange={(e) => onStrokeColorChange(e.target.value)}
-          className="w-6 h-6 rounded-full overflow-hidden cursor-pointer border-none p-0 bg-transparent"
-          disabled={currentTool === 'eraser'}
-        />
       </div>
 
-      <div className="w-px h-6 bg-border mx-1" />
+      <div className="w-px h-5 sm:h-6 bg-border mx-0.5" />
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="ghost" className="rounded-full h-10 px-4 flex items-center gap-2 hover:bg-muted font-bold text-xs uppercase tracking-widest">
-            <span className="opacity-40">Size:</span> {lineWidth}px
+          <Button variant="ghost" className="rounded-full h-8 sm:h-10 px-2 sm:px-4 flex items-center gap-1 sm:gap-2 hover:bg-muted font-black text-[8px] sm:text-[10px] uppercase tracking-widest">
+            <span className="opacity-40 hidden xs:inline">Peso:</span> {lineWidth}px
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-64 p-6 rounded-3xl" side="top" sideOffset={20}>
+        <PopoverContent className="w-48 sm:w-64 p-4 sm:p-6 rounded-3xl" side="top" sideOffset={15}>
           <div className="flex flex-col gap-4">
-            <div className="flex justify-between items-center font-bold text-xs uppercase opacity-40">
-              <span>Stroke Weight</span>
+            <div className="flex justify-between items-center font-black text-[8px] sm:text-[10px] uppercase opacity-40">
+              <span>Grosor del Trazo</span>
               <span>{lineWidth}px</span>
             </div>
-            <div className="flex items-center gap-4">
-              <Minus className="w-4 h-4 opacity-40 shrink-0" />
+            <div className="flex items-center gap-3 sm:gap-4">
+              <Minus className="w-3 h-3 sm:w-4 sm:h-4 opacity-40 shrink-0" />
               <Slider
                 min={1}
-                max={50}
+                max={40}
                 step={1}
                 value={[lineWidth]}
                 onValueChange={(v) => onLineWidthChange(v[0])}
                 className="flex-1"
               />
-              <Plus className="w-4 h-4 opacity-40 shrink-0" />
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4 opacity-40 shrink-0" />
             </div>
           </div>
         </PopoverContent>
       </Popover>
 
-      <div className="w-px h-6 bg-border mx-1" />
+      <div className="w-px h-5 sm:h-6 bg-border mx-0.5" />
 
       <Button 
         onClick={onClearCanvas} 
         variant="ghost" 
         size="icon"
-        className="rounded-full w-10 h-10 hover:bg-red-50 hover:text-red-500 transition-colors"
+        className="rounded-full w-8 h-8 sm:w-10 sm:h-10 hover:bg-red-50 hover:text-red-500 transition-colors"
       >
-        <RotateCcw className="h-4 w-4" />
+        <RotateCcw className="h-3 w-3 sm:h-4 sm:w-4" />
       </Button>
     </motion.div>
   );
