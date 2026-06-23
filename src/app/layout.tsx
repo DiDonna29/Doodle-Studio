@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Doodle AI',
-  description: 'Draw, and let AI guess your doodle!',
+  title: 'Doodle Game',
+  description: '¡Dibuja y adivina con tus amigos!',
 };
 
 export default function RootLayout({
@@ -24,17 +24,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <div
           className="min-h-screen w-full"
           style={{
-            backgroundColor: 'hsl(var(--background))', // Ensure background color is applied
+            backgroundColor: 'hsl(var(--background))',
             backgroundImage: 'radial-gradient(hsl(var(--muted)) 1px, transparent 1px), radial-gradient(hsl(var(--muted)) 1px, transparent 1px)',
             backgroundSize: '20px 20px',
             backgroundPosition: '0 0, 10px 10px',
           }}
-          data-ai-hint="smiley doodle pattern"
+          data-ai-hint="game pattern background"
         >
           {children}
           <Toaster />

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
@@ -6,9 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import DoodleCanvas, { type CanvasActions } from './DoodleCanvas';
 import DoodleToolbar from './DoodleToolbar';
 import { Button } from '@/components/ui/button';
-import { analyzeDoodle } from '@/ai/flows/analyze-doodle';
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Users, MessageSquare, Trophy, Sparkles, Send, Pencil } from 'lucide-react';
+import { Loader2, Users, MessageSquare, Trophy, Send, Pencil } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -34,15 +32,15 @@ const DoodlePage: React.FC = () => {
   // Game State
   const [players, setPlayers] = useState<Player[]>([
     { id: 'user', name: "Tú", score: 0, avatarSeed: 'user123', isUser: true },
-    { id: 'ai', name: "Gemini AI", score: 150, avatarSeed: 'ai456', isUser: false },
-    { id: 'bot', name: "DoodleBot", score: 80, avatarSeed: 'bot789', isUser: false },
+    { id: 'bot1', name: "DoodleBot", score: 80, avatarSeed: 'bot789', isUser: false },
+    { id: 'bot2', name: "PintorVeloz", score: 120, avatarSeed: 'pinter44', isUser: false },
   ]);
   const [currentRound, setCurrentRound] = useState(1);
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
   const [secretWord, setSecretWord] = useState(WORDS[0]);
   const [messages, setMessages] = useState<Message[]>([
-    { user: "Sistema", text: "¡Bienvenidos a Doodle AI! El juego comienza pronto.", isSystem: true }
+    { user: "Sistema", text: "¡Bienvenidos a Doodle Game! El juego comienza pronto.", isSystem: true }
   ]);
   const [chatInput, setChatInput] = useState("");
   const [isGameRunning, setIsGameRunning] = useState(true);
@@ -51,8 +49,6 @@ const DoodlePage: React.FC = () => {
   const [strokeColor, setStrokeColor] = useState<string>('#000000');
   const [lineWidth, setLineWidth] = useState<number>(8);
   const [currentTool, setCurrentTool] = useState<'pencil' | 'eraser'>('pencil');
-  const [isLoadingAi, setIsLoadingAi] = useState<boolean>(false);
-  const [aiGuess, setAiGuess] = useState<string | null>(null);
   
   const canvasRef = useRef<CanvasActions>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -64,7 +60,7 @@ const DoodlePage: React.FC = () => {
   const activePlayer = players[activePlayerIndex];
   const isUserTurn = activePlayer.isUser;
 
-  // Derive sorted players for leaderboard
+  // Derive sorted players for leaderboard - avoiding direct mutation
   const sortedPlayers = useMemo(() => {
     return [...players].sort((a, b) => b.score - a.score);
   }, [players]);
@@ -99,7 +95,6 @@ const DoodlePage: React.FC = () => {
 
   const handleNextTurn = useCallback(() => {
     canvasRef.current?.clearCanvas();
-    setAiGuess(null);
     
     const nextIndex = (activePlayerIndex + 1) % players.length;
     setActivePlayerIndex(nextIndex);
@@ -118,12 +113,12 @@ const DoodlePage: React.FC = () => {
       isSystem: true
     }]);
 
-    // Bot logic: if it's bot turn, simulate some drawing activity messages
+    // Bot logic: if it's bot turn, simulate some activity messages
     if (!players[nextIndex].isUser) {
       setTimeout(() => {
         setMessages(prev => [...prev, {
           user: players[nextIndex].name,
-          text: "Estoy empezando a dibujar algo muy difícil...",
+          text: "¡Aquí voy! Voy a dibujar algo asombroso.",
           isSystem: false
         }]);
       }, 2000);
@@ -139,7 +134,7 @@ const DoodlePage: React.FC = () => {
 
     const newMessage: Message = {
       user: "Tú",
-      text: isCorrect ? "¡HA ACERTADO LA PALABRA!" : text,
+      text: isCorrect ? "¡HAS ACERTADO LA PALABRA!" : text,
       isSystem: false,
       isCorrect: isCorrect
     };
@@ -160,35 +155,6 @@ const DoodlePage: React.FC = () => {
     }
   };
 
-  const handleAnalyzeDoodle = async () => {
-    if (!canvasRef.current) return;
-    const imageDataUrl = canvasRef.current.getCanvasDataUrl();
-    
-    setIsLoadingAi(true);
-    try {
-      const result = await analyzeDoodle({ doodleDataUri: imageDataUrl });
-      setAiGuess(result.guess);
-      
-      // If AI guesses correctly or close, simulate a message
-      setTimeout(() => {
-        setMessages(prev => [...prev, {
-          user: "Gemini AI",
-          text: `¿Es un ${result.guess}?`,
-          isSystem: false
-        }]);
-      }, 500);
-
-    } catch (error) {
-      toast({
-        title: "System Error",
-        description: "AI processing interrupted.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingAi(false);
-    }
-  };
-
   return (
     <div className="min-h-screen studio-grid p-6 flex items-center justify-center">
       <div className="w-full max-w-[1400px] h-[85vh] grid grid-cols-12 gap-6">
@@ -201,7 +167,7 @@ const DoodlePage: React.FC = () => {
         >
           <div className="flex items-center gap-2 px-2 py-1">
             <Users className="w-4 h-4 text-primary" />
-            <span className="font-bold text-sm tracking-tight uppercase opacity-60">Players</span>
+            <span className="font-bold text-sm tracking-tight uppercase opacity-60">Jugadores</span>
           </div>
           <ScrollArea className="flex-1">
             <div className="space-y-3">
@@ -228,7 +194,7 @@ const DoodlePage: React.FC = () => {
           </ScrollArea>
           <div className="mt-auto p-4 bg-muted/50 rounded-2xl text-center">
             <Trophy className="w-6 h-6 mx-auto mb-1 text-yellow-500" />
-            <p className="text-[10px] uppercase font-bold opacity-40">Leaderboard Position</p>
+            <p className="text-[10px] uppercase font-bold opacity-40">Posición Ranking</p>
             <p className="text-lg font-black tracking-tighter">
               #{userRank}
             </p>
@@ -299,42 +265,7 @@ const DoodlePage: React.FC = () => {
                 />
               </div>
             )}
-
-            {/* AI Result Overlay */}
-            <AnimatePresence>
-              {aiGuess && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="absolute top-24 left-1/2 -translate-x-1/2 z-30 bg-primary text-primary-foreground px-8 py-4 rounded-3xl shadow-2xl flex flex-col items-center gap-1 border-4 border-white"
-                >
-                  <Sparkles className="w-6 h-6 mb-2" />
-                  <p className="text-xs font-black uppercase tracking-[0.2em] opacity-80">IA Dice</p>
-                  <p className="text-3xl font-black tracking-tighter capitalize">{aiGuess}</p>
-                  <Button variant="link" className="text-primary-foreground/60 text-xs h-auto p-0 mt-2" onClick={() => setAiGuess(null)}>Cerrar</Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </motion.div>
-
-          {isUserTurn && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex justify-center gap-4"
-            >
-              <Button
-                onClick={handleAnalyzeDoodle}
-                disabled={isLoadingAi}
-                size="lg"
-                className="rounded-2xl h-14 px-12 bg-foreground text-background hover:bg-foreground/90 font-bold transition-all hover:scale-105 active:scale-95 shadow-xl"
-              >
-                {isLoadingAi ? <Loader2 className="animate-spin mr-2" /> : <Sparkles className="mr-2 w-5 h-5" />}
-                {isLoadingAi ? "La IA está pensando..." : "Enviar a la IA"}
-              </Button>
-            </motion.div>
-          )}
         </div>
 
         {/* Right Sidebar: Chat / Feed */}
@@ -345,7 +276,7 @@ const DoodlePage: React.FC = () => {
         >
           <div className="flex items-center gap-2 px-2 py-1 mb-4">
             <MessageSquare className="w-4 h-4 text-primary" />
-            <span className="font-bold text-sm tracking-tight uppercase opacity-60">Game Chat</span>
+            <span className="font-bold text-sm tracking-tight uppercase opacity-60">Chat de Juego</span>
           </div>
           <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
             <div className="space-y-4 pb-4">
@@ -373,7 +304,7 @@ const DoodlePage: React.FC = () => {
             <Input 
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              placeholder={isUserTurn ? "Tú estás dibujando..." : "Escribe tu respuesta..."} 
+              placeholder={isUserTurn ? "Es tu turno de dibujar..." : "Escribe tu respuesta..."} 
               disabled={isUserTurn}
               className="rounded-2xl border-none bg-muted focus-visible:ring-1 focus-visible:ring-primary h-12" 
             />
