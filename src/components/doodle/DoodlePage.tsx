@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
@@ -6,7 +7,7 @@ import DoodleCanvas, { type CanvasActions } from './DoodleCanvas';
 import DoodleToolbar from './DoodleToolbar';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Users, MessageSquare, Trophy, Send, Pencil } from 'lucide-react';
+import { Loader2, Users, MessageSquare, Trophy, Send, Pencil, SkipForward, Play } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -26,7 +27,7 @@ interface Message {
   isCorrect?: boolean;
 }
 
-const WORDS = ["Gato", "Casa", "Avión", "Pizza", "Sol", "Computadora", "Guitarra", "Árbol", "Coche", "Libro"];
+const WORDS = ["Gato", "Casa", "Avión", "Pizza", "Sol", "Computadora", "Guitarra", "Árbol", "Coche", "Libro", "Elefante", "Castillo", "Hamburguesa", "Tren"];
 
 const DoodlePage: React.FC = () => {
   // Game State
@@ -40,7 +41,7 @@ const DoodlePage: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(60);
   const [secretWord, setSecretWord] = useState(WORDS[0]);
   const [messages, setMessages] = useState<Message[]>([
-    { user: "Sistema", text: "¡Bienvenidos a Doodle Game! El juego comienza pronto.", isSystem: true }
+    { user: "Sistema", text: "¡Bienvenidos! Dibuja y adivina con tus amigos.", isSystem: true }
   ]);
   const [chatInput, setChatInput] = useState("");
   const [isGameRunning, setIsGameRunning] = useState(true);
@@ -58,9 +59,8 @@ const DoodlePage: React.FC = () => {
   const CANVAS_HEIGHT = 500;
 
   const activePlayer = players[activePlayerIndex];
-  const isUserTurn = activePlayer.isUser;
+  const isUserTurn = activePlayer?.isUser ?? false;
 
-  // Derive sorted players for leaderboard - avoiding direct mutation
   const sortedPlayers = useMemo(() => {
     return [...players].sort((a, b) => b.score - a.score);
   }, [players]);
@@ -69,12 +69,30 @@ const DoodlePage: React.FC = () => {
     return sortedPlayers.findIndex(p => p.isUser) + 1;
   }, [sortedPlayers]);
 
-  // Auto-scroll chat
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+  const addMessage = useCallback((user: string, text: string, isSystem = false, isCorrect = false) => {
+    setMessages(prev => [...prev, { user, text, isSystem, isCorrect }]);
+  }, []);
+
+  const handleNextTurn = useCallback(() => {
+    canvasRef.current?.clearCanvas();
+    
+    setActivePlayerIndex((prev) => {
+      const nextIndex = (prev + 1) % players.length;
+      
+      if (nextIndex === 0) {
+        setCurrentRound(r => r + 1);
+      }
+
+      const nextPlayer = players[nextIndex];
+      addMessage("Sistema", `¡Es el turno de ${nextPlayer.name}!`, true);
+      
+      const nextWord = WORDS[Math.floor(Math.random() * WORDS.length)];
+      setSecretWord(nextWord);
+      setTimeLeft(60);
+
+      return nextIndex;
+    });
+  }, [players, addMessage]);
 
   // Timer logic
   useEffect(() => {
@@ -91,39 +109,36 @@ const DoodlePage: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isGameRunning, activePlayerIndex]);
+  }, [isGameRunning, handleNextTurn]);
 
-  const handleNextTurn = useCallback(() => {
-    canvasRef.current?.clearCanvas();
-    
-    const nextIndex = (activePlayerIndex + 1) % players.length;
-    setActivePlayerIndex(nextIndex);
-    setTimeLeft(60);
-    
-    const nextWord = WORDS[Math.floor(Math.random() * WORDS.length)];
-    setSecretWord(nextWord);
+  // Bot activity simulation
+  useEffect(() => {
+    if (!isGameRunning || isUserTurn) return;
 
-    if (nextIndex === 0) {
-      setCurrentRound(prev => prev + 1);
-    }
-
-    setMessages(prev => [...prev, {
-      user: "Sistema",
-      text: `¡Turno de ${players[nextIndex].name}!`,
-      isSystem: true
-    }]);
-
-    // Bot logic: if it's bot turn, simulate some activity messages
-    if (!players[nextIndex].isUser) {
+    // Simulate bot finishing drawing after 10-15 seconds
+    const finishDrawingTimer = setTimeout(() => {
+      addMessage("Sistema", `${activePlayer.name} ha terminado de dibujar.`, true);
+      // Wait a bit more and then pass turn if no one guessed
       setTimeout(() => {
-        setMessages(prev => [...prev, {
-          user: players[nextIndex].name,
-          text: "¡Aquí voy! Voy a dibujar algo asombroso.",
-          isSystem: false
-        }]);
-      }, 2000);
+        handleNextTurn();
+      }, 3000);
+    }, 12000);
+
+    // Simulate bots guessing when USER is drawing
+    let guessInterval: NodeJS.Timeout;
+    if (isUserTurn) {
+        guessInterval = setInterval(() => {
+            const randomBot = players.filter(p => !p.isUser)[Math.floor(Math.random() * (players.length - 1))];
+            const randomGuess = WORDS[Math.floor(Math.random() * WORDS.length)];
+            addMessage(randomBot.name, randomGuess);
+        }, 8000);
     }
-  }, [activePlayerIndex, players]);
+
+    return () => {
+      clearTimeout(finishDrawingTimer);
+      if (guessInterval) clearInterval(guessInterval);
+    };
+  }, [isGameRunning, isUserTurn, activePlayer, addMessage, handleNextTurn, players]);
 
   const handleSendMessage = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -132,27 +147,16 @@ const DoodlePage: React.FC = () => {
     const text = chatInput.trim();
     const isCorrect = text.toLowerCase() === secretWord.toLowerCase();
 
-    const newMessage: Message = {
-      user: "Tú",
-      text: isCorrect ? "¡HAS ACERTADO LA PALABRA!" : text,
-      isSystem: false,
-      isCorrect: isCorrect
-    };
-
-    setMessages(prev => [...prev, newMessage]);
-    setChatInput("");
-
     if (isCorrect && !isUserTurn) {
-      // Award points
-      setPlayers(prev => prev.map(p => 
-        p.isUser ? { ...p, score: p.score + 50 } : p
-      ));
-      
-      toast({
-        title: "¡Excelente!",
-        description: `Has acertado: ${secretWord}`,
-      });
+      addMessage("Tú", `¡HAS ACERTADO! La palabra era: ${secretWord}`, false, true);
+      setPlayers(prev => prev.map(p => p.isUser ? { ...p, score: p.score + 100 } : p));
+      toast({ title: "¡Puntos extra!", description: "Has adivinado la palabra." });
+      setTimeout(handleNextTurn, 2000);
+    } else {
+      addMessage("Tú", text);
     }
+    
+    setChatInput("");
   };
 
   return (
@@ -210,7 +214,7 @@ const DoodlePage: React.FC = () => {
           >
             {/* Header Info */}
             <div className="absolute top-0 inset-x-0 h-16 flex items-center justify-between px-8 bg-gradient-to-b from-background/80 to-transparent pointer-events-none z-10">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 pointer-events-auto">
                 <div className="bg-primary/10 text-primary px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-primary/20 backdrop-blur-md">
                   Ronda {currentRound}/10
                 </div>
@@ -223,11 +227,17 @@ const DoodlePage: React.FC = () => {
                   <h1 className="text-lg font-bold tracking-tight">{activePlayer.name} está dibujando...</h1>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-sm font-bold opacity-60">
-                <span>Tiempo:</span>
-                <span className={`font-mono text-xl ${timeLeft < 10 ? 'text-destructive animate-pulse' : 'text-primary'}`}>
-                  00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
-                </span>
+              <div className="flex items-center gap-4 pointer-events-auto">
+                <div className="flex items-center gap-2 text-sm font-bold opacity-60">
+                  <span>Tiempo:</span>
+                  <span className={`font-mono text-xl ${timeLeft < 10 ? 'text-destructive animate-pulse' : 'text-primary'}`}>
+                    00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
+                  </span>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleNextTurn} className="rounded-full bg-background/50 backdrop-blur-md border-border/50 hover:bg-background">
+                  <SkipForward className="w-4 h-4 mr-2" />
+                  Saltar
+                </Button>
               </div>
             </div>
 
@@ -243,10 +253,17 @@ const DoodlePage: React.FC = () => {
               />
               {!isUserTurn && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="bg-background/80 backdrop-blur-md px-6 py-3 rounded-full border border-border shadow-2xl flex items-center gap-3">
-                    <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                    <span className="font-bold text-sm">Observando el dibujo de {activePlayer.name}</span>
-                  </div>
+                  <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="bg-background/80 backdrop-blur-md px-8 py-4 rounded-[2rem] border border-border shadow-2xl flex flex-col items-center gap-4"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      <span className="font-bold text-lg">Observando a {activePlayer.name}</span>
+                    </div>
+                    <p className="text-sm opacity-60 max-w-[200px] text-center">Adivina lo que está dibujando escribiendo en el chat.</p>
+                  </motion.div>
                 </div>
               )}
             </div>
@@ -287,11 +304,11 @@ const DoodlePage: React.FC = () => {
                       {msg.user}
                     </span>
                   )}
-                  <div className={`px-4 py-2.5 rounded-2xl text-sm ${
+                  <div className={`px-4 py-2.5 rounded-2xl text-sm transition-all ${
                     msg.isSystem 
                       ? 'text-xs italic' 
                       : msg.isCorrect 
-                        ? 'bg-green-500 text-white font-bold animate-bounce' 
+                        ? 'bg-green-500 text-white font-bold shadow-lg shadow-green-500/20' 
                         : 'bg-muted/80 font-medium'
                   }`}>
                     {msg.text}
@@ -304,7 +321,7 @@ const DoodlePage: React.FC = () => {
             <Input 
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              placeholder={isUserTurn ? "Es tu turno de dibujar..." : "Escribe tu respuesta..."} 
+              placeholder={isUserTurn ? "Dibuja para que otros adivinen..." : "Escribe tu respuesta..."} 
               disabled={isUserTurn}
               className="rounded-2xl border-none bg-muted focus-visible:ring-1 focus-visible:ring-primary h-12" 
             />
