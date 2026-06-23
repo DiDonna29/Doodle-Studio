@@ -1,77 +1,63 @@
-# 🎨 Doodle Studio - Creative Workspace
+# 🎨 Doodle Studio - Creative Workspace (Pro)
 
-Doodle Studio es una aplicación web inspirada en juegos sociales como "Pinturillo" o "Skribbl.io", diseñada con un enfoque de alto nivel en UI/UX siguiendo la filosofía **Taste Skill**. Es un entorno creativo donde los jugadores pueden dibujar y adivinar palabras en tiempo real con una interfaz fluida y profesional.
+Doodle Studio es una aplicación web de dibujo social inspirada en clásicos como "Pinturillo", reimaginada con una estética de alta gama siguiendo la filosofía **Taste Skill (Anti-Slop)**. Este proyecto demuestra cómo una lógica de juego simple puede elevarse a una experiencia de usuario premium mediante diseño asimétrico, micro-animaciones fluidas y una arquitectura de componentes robusta.
 
-## 🚀 Tecnologías Principales
+## 🚀 Vision & UX Philosophy
 
-- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
-- **Lenguaje**: [TypeScript](https://www.typescriptlang.org/)
-- **UI & Styling**: 
-  - [Tailwind CSS](https://tailwindcss.com/) para diseño responsivo.
-  - [Shadcn UI](https://ui.shadcn.com/) para componentes accesibles.
-  - [Lucide React](https://lucide.dev/) para iconografía premium.
-- **Animaciones**: [Framer Motion](https://www.framer.com/motion/) para transiciones y micro-interacciones.
-- **Gráficos**: HTML5 Canvas para el motor de dibujo.
+La aplicación ha sido construida bajo tres pilares fundamentales:
+1.  **Taste Skill Compliance**: Diseño basado en varianza de layout, densidades visuales controladas y una obsesión por los detalles (espaciado, tipografía tabular, sombras dinámicas).
+2.  **Responsive Isolation**: Arquitectura diseñada para escritorio primero, con un sistema de adaptación móvil que garantiza que el área creativa (Canvas) sea siempre la protagonista.
+3.  **Performance Over Slop**: Eliminación de desbordamientos visuales, optimización de renderizado con React 19 y control de estado fluido.
 
-## 🧠 Lógica de la Aplicación
+## 🛠️ Stack Tecnológico
 
-La aplicación funciona mediante un motor de estado local altamente optimizado que gestiona:
+- **Frontend**: Next.js 15 (App Router)
+- **Lenguaje**: TypeScript
+- **Estilos**: Tailwind CSS con sistema de temas dinámico (HSL)
+- **Componentes**: Shadcn UI (Radix Primitives)
+- **Animaciones**: Framer Motion
+- **Gráficos**: HTML5 Canvas Engine
+- **Gestión de Dependencias**: Totalmente compatible con `npm`, `yarn` y `pnpm`.
 
-1.  **Ciclo de Juego**: Un sistema rotativo que asigna el rol de "Dibujante" a cada jugador de forma secuencial.
-2.  **Sistema de Rondas**: El juego progresa a través de un número definido de rondas (3-10), asegurando que todos los participantes tengan la misma oportunidad de ganar puntos.
-3.  **Chat Reactivo**: Un sistema de feed en tiempo real que detecta automáticamente si los mensajes de los jugadores coinciden con la palabra secreta.
-4.  **IA de Simulación**: Incluye bots locales que simulan adivinanzas y participación, haciendo que el juego sea divertido incluso en modo solitario.
-5.  **Responsividad Absoluta**: El diseño se ajusta dinámicamente para bloquear el desbordamiento (containment), manteniendo la interfaz usable tanto en móviles como en monitores ultra-wide.
+## 📦 Instalación
 
-## 🛠️ Instalación y Uso
-
-Doodle Studio es compatible con los gestores de paquetes más populares.
-
-### 1. Clonar el repositorio e instalar dependencias
+Sigue estos pasos para ejecutar el estudio en tu entorno local:
 
 ```bash
-# Con npm
+# 1. Instalar dependencias
+pnpm install
+# o
+yarn install
+# o
 npm install
 
-# Con yarn
-yarn install
-
-# Con pnpm
-pnpm install
-```
-
-### 2. Ejecutar en modo desarrollo
-
-```bash
-npm run dev
+# 2. Iniciar servidor de desarrollo
+pnpm dev
 # o
 yarn dev
 # o
-pnpm dev
+npm run dev
 ```
 
-### 3. Construir para producción
+## 🧠 Lógica de la Aplicación
 
-```bash
-npm run build
-# o
-yarn build
-# o
-pnpm build
-```
+### Motor de Juego (Game Engine)
+El juego utiliza un sistema de estado reactivo que gestiona:
+- **Rotación de Turnos**: Un ciclo que asigna el rol de "Artista" a cada participante.
+- **Temporizador Sincronizado**: Un contador de 60 segundos que bloquea o libera herramientas de dibujo según el rol.
+- **Reconocimiento de Patrones**: Un sistema de chat que valida entradas en tiempo real contra la palabra secreta del turno actual.
+- **Simulación de IA/Bots**: Algoritmos que simulan la participación de otros jugadores para permitir el juego en solitario.
 
-## 🎯 Propósito y UX
-
-El propósito de Doodle Studio es demostrar que las aplicaciones de juego simples pueden tener una estética "Premium" y "Anti-Slop". Cada elemento, desde el cursor del pincel hasta los contadores de tiempo, ha sido diseñado para ser visualmente gratificante y no sobrecargar la vista del usuario.
+### Contención Visual
+Todos los contenedores utilizan `min-w-0` y `truncate` para asegurar que nombres y puntuaciones no rompan el layout. Los números dinámicos usan la clase `tabular-nums` para evitar el movimiento lateral de los elementos durante el conteo.
 
 ## 🔮 Futuro Escalable
 
-Doodle Studio está diseñado para ser la base de un ecosistema más grande:
-
-1.  **Multiplayer con Firebase**: La arquitectura actual permite una migración sencilla a Firestore para habilitar salas multijugador reales con WebSockets o Listeners en tiempo real.
-2.  **AI Judging**: Integración con Genkit para que una IA no solo adivine, sino que califique la calidad artística de los dibujos.
-3.  **Persistencia de Perfiles**: Sistema de cuentas de usuario para guardar estadísticas, skins de pinceles y avatares personalizados.
-4.  **Torneos Globales**: Escalabilidad para soportar tablas de clasificación globales y eventos de dibujo competitivos.
+Doodle Studio está preparado para evolucionar hacia:
+1.  **Multiplayer Real-Time**: Integración con Firebase Firestore (Listeners) o WebSockets para salas de juego globales.
+2.  **AI Judging Integration**: Uso de Genkit para calificar la calidad artística o generar sugerencias de dibujo.
+3.  **Persistencia de Usuario**: Sistema de cuentas para guardar skins de pinceles, avatares personalizados y estadísticas históricas.
+4.  **Exportación de Arte**: Capacidad de convertir los dibujos de las rondas en NFTs o imágenes descargables en alta resolución.
 
 ---
-*Desarrollado con ❤️ para la comunidad creativa.*
+*Desarrollado con precisión técnica y pasión creativa.*
