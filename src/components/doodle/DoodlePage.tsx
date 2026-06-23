@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DoodleCanvas, { type CanvasActions } from './DoodleCanvas';
 import DoodleToolbar from './DoodleToolbar';
@@ -63,6 +63,15 @@ const DoodlePage: React.FC = () => {
 
   const activePlayer = players[activePlayerIndex];
   const isUserTurn = activePlayer.isUser;
+
+  // Derive sorted players for leaderboard
+  const sortedPlayers = useMemo(() => {
+    return [...players].sort((a, b) => b.score - a.score);
+  }, [players]);
+
+  const userRank = useMemo(() => {
+    return sortedPlayers.findIndex(p => p.isUser) + 1;
+  }, [sortedPlayers]);
 
   // Auto-scroll chat
   useEffect(() => {
@@ -221,7 +230,7 @@ const DoodlePage: React.FC = () => {
             <Trophy className="w-6 h-6 mx-auto mb-1 text-yellow-500" />
             <p className="text-[10px] uppercase font-bold opacity-40">Leaderboard Position</p>
             <p className="text-lg font-black tracking-tighter">
-              #{players.sort((a, b) => b.score - a.score).findIndex(p => p.isUser) + 1}
+              #{userRank}
             </p>
           </div>
         </motion.div>
