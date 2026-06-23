@@ -1,0 +1,21 @@
+
+{
+  "avatars": [
+    {
+      "url": "https://picsum.photos/seed/player1/100/100",
+      "hint": "cartoon avatar"
+    },
+    {
+      "url": "https://picsum.photos/seed/player2/100/100",
+      "hint": "robot avatar"
+    },
+    {
+      "url": "https://picsum.photos/seed/player3/100/100",
+      "hint": "monster avatar"
+    },
+    {
+      "url": "https://picsum.photos/seed/player4/100/100",
+      "hint": "ninja avatar"
+    }
+  ]
+}
