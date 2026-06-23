@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -62,7 +63,7 @@ const DoodleCanvas: FC<React.ForwardRefRenderFunction<CanvasActions, DoodleCanva
       if (!coords) return;
       setIsDrawing(true);
       setLastPosition(coords);
-      // Draw a dot for single clicks/taps
+      
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
@@ -91,7 +92,6 @@ const DoodleCanvas: FC<React.ForwardRefRenderFunction<CanvasActions, DoodleCanva
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Set initial background
       ctx.fillStyle = canvasBackgroundColor;
       ctx.fillRect(0, 0, width, height);
     }, [width, height, canvasBackgroundColor]);
@@ -116,7 +116,7 @@ const DoodleCanvas: FC<React.ForwardRefRenderFunction<CanvasActions, DoodleCanva
         ref={canvasRef}
         width={width}
         height={height}
-        className="border border-input rounded-md shadow-sm cursor-crosshair touch-none bg-white"
+        className="rounded-[1.5rem] shadow-sm cursor-crosshair touch-none bg-white transition-transform active:scale-[1.002]"
         onMouseDown={startDrawing}
         onMouseMove={handleDrawing}
         onMouseUp={stopDrawing}
@@ -124,7 +124,6 @@ const DoodleCanvas: FC<React.ForwardRefRenderFunction<CanvasActions, DoodleCanva
         onTouchStart={startDrawing}
         onTouchMove={handleDrawing}
         onTouchEnd={stopDrawing}
-        style={{ backgroundColor: canvasBackgroundColor }}
       />
     );
   }
